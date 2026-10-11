@@ -1,16 +1,94 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MAPS } from '../data/content';
 import { Maximize2, X, ZoomIn, ZoomOut } from 'lucide-react';
 
-/** Історичний атлас: 4 карти в одному вікні, zoom, Escape, клавіатура. */
+/** Історичний атлас: 4 карти в одному вікні, zoom, Escape, клавіатура.
+ *  Переглядач: pinch-to-zoom двома пальцями навколо фокусної точки,
+ *  перетягування одним пальцем/мишею з межами, колесо миші — масштаб.
+ */
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 3;
+
+interface PinchState {
+  d0: number;
+  z0: number;
+  mx0: number;
+  my0: number;
+  px0: number;
+  py0: number;
+}
+
 export default function HistoricAtlas() {
   const [selected, setSelected] = useState('1779');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoomState] = useState(1);
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const openBtnRef = useRef<HTMLButtonElement>(null);
-  const dialogImgRef = useRef<HTMLImageElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const map = MAPS.find((m) => m.year === selected) ?? MAPS[0];
+
+  const zoomRef = useRef(1);
+  const gesture = useRef({
+    pointers: new Map<number, { x: number; y: number }>(),
+    pinch: null as PinchState | null,
+    last: null as { x: number; y: number } | null,
+    pan: { x: 0, y: 0 },
+  });
+
+  type nullSupplier = null | {
+    d0: number;
+    z0: number;
+    mx0: number;
+    my0: number;
+    px0: number;
+    py0: number;
+  };
+
+  const setZoom = useCallback((z: number) => {
+    const clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +z.toFixed(3)));
+    zoomRef.current = clamped;
+    setZoomState(clamped);
+  }, []);
+
+  const baseWidth = useCallback(() => {
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 800;
+    return Math.min(1000, vw - 60);
+  }, []);
+
+  const clampPan = useCallback((px: number, py: number, z: number) => {
+    const vp = viewportRef.current;
+    const cw = vp ? vp.clientWidth : 0;
+    const ch = vp ? vp.clientHeight : 0;
+    const w = baseWidth() * z;
+    const h = w; // карти квадратні 2048×2048
+    const rx = Math.max(0, (w - cw) / 2);
+    const ry = Math.max(0, (h - ch) / 2);
+    return {
+      x: Math.min(rx, Math.max(-rx, px)),
+      y: Math.min(ry, Math.max(-ry, py)),
+    };
+  }, [baseWidth]);
+
+  const applyPan = useCallback((p: { x: number; y: number }) => {
+    gesture.current.pan = p;
+    if (stageRef.current) {
+      stageRef.current.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
+    }
+  }, []);
+
+  const resetView = useCallback(() => {
+    setZoom(1);
+    applyPan({ x: 0, y: 0 });
+  }, [setZoom, applyPan]);
+
+  // Утримуємо панораму в межах після кнопкового/клавіатурного зуму
+  useEffect(() => {
+    if (!dialogOpen) return;
+    const g = gesture.current;
+    applyPan(clampPan(g.pan.x, g.pan.y, zoomRef.current));
+  }, [zoom, dialogOpen, clampPan, applyPan]);
 
   const showMap = useCallback((year: string) => {
     setSelected(year);
@@ -38,8 +116,8 @@ export default function HistoricAtlas() {
         setDialogOpen(false);
         openBtnRef.current?.focus();
       }
-      if (e.key === '+' || e.key === '=') setZoom((z) => Math.min(3, +(z + 0.5).toFixed(2)));
-      if (e.key === '-') setZoom((z) => Math.max(1, +(z - 0.5).toFixed(2)));
+      if (e.key === '+' || e.key === '=') setZoom(zoomRef.current + 0.5);
+      if (e.key === '-') setZoom(zoomRef.current - 0.5);
     };
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
@@ -49,6 +127,118 @@ export default function HistoricAtlas() {
       document.body.style.overflow = prev;
     };
   }, [dialogOpen]);
+
+  // Колесо миші / трекпад: масштаб навколо курсора (без прокручування фону)
+  useEffect(() => {
+    if (!dialogOpen) return;
+    const vp = viewportRef.current;
+    if (!vp) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const r = vp.getBoundingClientRect();
+      const mx = e.clientX - r.left;
+      const my = e.clientY - r.top;
+      const z0 = zoomRef.current;
+      const z1 = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(z0 + (e.deltaY > 0 ? -0.25 : 0.25)).toFixed(3)));
+      if (z1 === z0) return;
+      const g = gesture.current;
+      const u = contentPoint({ x: mx, y: my }, g.pan, z0);
+      setZoom(z1);
+      applyPan(panForFocal({ x: mx, y: my }, u, z1));
+    };
+    vp.addEventListener('wheel', onWheel, { passive: false });
+    return () => vp.removeEventListener('wheel', onWheel);
+  }, [dialogOpen, setZoom, clampPan, applyPan]);
+
+  const posInViewport = (clientX: number, clientY: number) => {
+    const r = viewportRef.current?.getBoundingClientRect();
+    return { x: clientX - (r?.left ?? 0), y: clientY - (r?.top ?? 0) };
+  };
+
+  const contentPoint = (m: { x: number; y: number }, pan: { x: number; y: number }, z: number) => {
+    // Вміст відносно центру зображення: сцена відцентрована flex-контейнером,
+    // translate(0,0) означає «центр збігається», тож відлік ведемо від центра.
+    const vp = viewportRef.current;
+    const cx = (vp ? vp.clientWidth : 0) / 2;
+    const cy = (vp ? vp.clientHeight : 0) / 2;
+    return { ux: (m.x - cx - pan.x) / z, uy: (m.y - cy - pan.y) / z };
+  };
+
+  const panForFocal = (
+    m: { x: number; y: number },
+    u: { ux: number; uy: number },
+    z1: number,
+  ) => {
+    const vp = viewportRef.current;
+    const cx = (vp ? vp.clientWidth : 0) / 2;
+    const cy = (vp ? vp.clientHeight : 0) / 2;
+    return clampPan(m.x - cx - u.ux * z1, m.y - cy - u.uy * z1, z1);
+  };
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    try {
+      viewportRef.current?.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    const g = gesture.current;
+    const p = posInViewport(e.clientX, e.clientY);
+    g.pointers.set(e.pointerId, p);
+    if (g.pointers.size === 2) {
+      const [a, b] = [...g.pointers.values()];
+      g.pinch = {
+        d0: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+        z0: zoomRef.current,
+        mx0: (a.x + b.x) / 2,
+        my0: (a.y + b.y) / 2,
+        px0: g.pan.x,
+        py0: g.pan.y,
+      };
+      g.last = null;
+    } else if (g.pointers.size === 1) {
+      g.last = p;
+    }
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const g = gesture.current;
+    if (!g.pointers.has(e.pointerId)) return;
+    const p = posInViewport(e.clientX, e.clientY);
+    g.pointers.set(e.pointerId, p);
+    if (g.pointers.size === 2 && g.pinch) {
+      const [a, b] = [...g.pointers.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+      const mx = (a.x + b.x) / 2;
+      const my = (a.y + b.y) / 2;
+      const z1 = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(g.pinch.z0 * (d / g.pinch.d0)).toFixed(3)));
+      // Точка вмісту під серединою відрізка лишається на місці
+      const u = contentPoint({ x: g.pinch.mx0, y: g.pinch.my0 }, { x: g.pinch.px0, y: g.pinch.py0 }, g.pinch.z0);
+      if (z1 !== zoomRef.current) setZoom(z1);
+      applyPan(panForFocal({ x: mx, y: my }, u, z1));
+    } else if (g.pointers.size === 1 && g.last) {
+      const dx = p.x - g.last.x;
+      const dy = p.y - g.last.y;
+      g.last = p;
+      if (dx !== 0 || dy !== 0) {
+        applyPan(clampPan(g.pan.x + dx, g.pan.y + dy, zoomRef.current));
+      }
+    }
+  };
+
+  const endPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    const g = gesture.current;
+    g.pointers.delete(e.pointerId);
+    if (g.pointers.size === 1) {
+      // Перехід pinch → перетягування без стрибка: якір на палець, що лишився
+      const [rest] = [...g.pointers.values()];
+      g.last = rest;
+      g.pinch = null;
+    } else if (g.pointers.size === 0) {
+      g.last = null;
+      g.pinch = null;
+    }
+  };
 
   const onTabKey = (e: React.KeyboardEvent, index: number) => {
     let next: number | undefined;
@@ -107,7 +297,7 @@ export default function HistoricAtlas() {
           id="open-map"
           ref={openBtnRef}
           onClick={() => {
-            setZoom(1);
+            resetView();
             setDialogOpen(true);
           }}
           aria-label={`Збільшити ${map.title.toLowerCase()}`}
@@ -139,8 +329,9 @@ export default function HistoricAtlas() {
         </div>
       </div>
 
-      {dialogOpen && (
-        <div role="dialog" aria-modal="true" aria-labelledby="dialog-caption" className="fixed inset-0 z-[120] bg-black/90 flex flex-col">
+      {dialogOpen &&
+        createPortal(
+          <div role="dialog" aria-modal="true" aria-labelledby="dialog-caption" className="fixed inset-0 z-[120] bg-black/90 flex flex-col">
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
             <div>
               <p className="text-xs tracking-[0.2em] uppercase text-white/50">Атлас Гошева</p>
@@ -150,28 +341,41 @@ export default function HistoricAtlas() {
               <X size={20} />
             </button>
           </div>
-          <div className="flex-1 overflow-auto p-4 flex items-start justify-center" tabIndex={0} aria-label="Карта. Після збільшення можна прокручувати">
-            <img
-              ref={dialogImgRef}
-              src={map.src}
-              alt={map.alt}
-              draggable={false}
-              style={{ width: `${Math.min(1000, typeof window !== 'undefined' ? window.innerWidth - 60 : 800) * zoom}px`, maxWidth: 'none' }}
-            />
+          <div
+            ref={viewportRef}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={endPointer}
+            onPointerCancel={endPointer}
+            onContextMenu={(e) => e.preventDefault()}
+            className="flex-1 overflow-hidden p-4 flex items-center justify-center touch-none overscroll-contain select-none"
+            style={{ WebkitTouchCallout: 'none' }}
+            tabIndex={0}
+            aria-label="Карта. Щипок двома пальцями — масштаб, перетягування одним пальцем або мишею — рух"
+          >
+            <div ref={stageRef} className="will-change-transform">
+              <img
+                src={map.src}
+                alt={map.alt}
+                draggable={false}
+                style={{ width: `${baseWidth() * zoom}px`, maxWidth: 'none' }}
+              />
+            </div>
           </div>
           <div className="flex items-center justify-center gap-3 px-6 py-4 border-t border-white/10">
             <span className="text-sm text-white/60">Масштаб</span>
-            <button onClick={() => setZoom((z) => Math.max(1, +(z - 0.5).toFixed(2)))} disabled={zoom <= 1} aria-label="Зменшити карту" className="rounded-full border border-white/20 p-2 disabled:opacity-40">
+            <button onClick={() => setZoom(zoomRef.current - 0.5)} disabled={zoom <= 1} aria-label="Зменшити карту" className="rounded-full border border-white/20 p-2 disabled:opacity-40">
               <ZoomOut size={18} />
             </button>
             <output aria-live="polite" className="min-w-[56px] text-center">{Math.round(zoom * 100)}%</output>
-            <button onClick={() => setZoom((z) => Math.min(3, +(z + 0.5).toFixed(2)))} disabled={zoom >= 3} aria-label="Збільшити карту" className="rounded-full border border-white/20 p-2 disabled:opacity-40">
+            <button onClick={() => setZoom(zoomRef.current + 0.5)} disabled={zoom >= 3} aria-label="Збільшити карту" className="rounded-full border border-white/20 p-2 disabled:opacity-40">
               <ZoomIn size={18} />
             </button>
-            <button onClick={() => setZoom(1)} className="rounded-full border border-white/20 px-4 py-2 text-sm">Умістити</button>
+            <button onClick={resetView} className="rounded-full border border-white/20 px-4 py-2 text-sm">Умістити</button>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
