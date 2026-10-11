@@ -16,6 +16,7 @@ export default function CinematicIntro() {
         src=""
         containerId={INTRO_ID}
         photoSrc={HERO_PHOTO_SRC}
+        photoSizes="100vw"
         photoAlt={HERO_PHOTO_ALT}
       />
       <div className="sticky top-0 h-screen overflow-hidden">

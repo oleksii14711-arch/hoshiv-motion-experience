@@ -12,6 +12,8 @@ interface ScrollVideoProps {
   /** Кінематографічний фото-hero: коли задано, HLS не завантажується, hero — справжнє фото Гошева. */
   photoSrc?: string;
   photoAlt?: string;
+  photoSrcSet?: string;
+  photoSizes?: string;
 }
 
 const FALLBACK_PHOTOS = [
@@ -25,7 +27,7 @@ const FALLBACK_PHOTOS = [
  * ScrollVideo — кадр відео керується прокручуванням 500vh сцени.
  * HLS через hls.js, Safari — нативно. Fallback — кінематографічні фото Гошева.
  */
-export default function ScrollVideo({ src, className = '', containerId, photoSrc, photoAlt = '' }: ScrollVideoProps) {
+export default function ScrollVideo({ src, className = '', containerId, photoSrc, photoAlt = '', photoSrcSet, photoSizes = '100vw' }: ScrollVideoProps) {
   const photoMode = Boolean(photoSrc);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fallbackRef = useRef<HTMLDivElement>(null);
@@ -269,12 +271,13 @@ export default function ScrollVideo({ src, className = '', containerId, photoSrc
           <div ref={heroZoomRef} className="absolute inset-0 will-change-transform">
             <img
               src={photoSrc}
+              srcSet={photoSrcSet}
+              sizes={photoSizes}
               alt={photoAlt}
               fetchPriority="high"
               onLoad={() => setLoading(false)}
               onError={() => setLoading(false)}
-              className="kenburns absolute inset-0 w-full h-full object-cover"
-              style={{ objectPosition: '50% 38%' }}
+              className="kenburns hero-img absolute inset-0 w-full h-full object-cover"
             />
           </div>
           {/* Верхнє затемнення під навігацію */}
