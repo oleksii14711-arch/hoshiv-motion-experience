@@ -127,7 +127,7 @@ export default function PillNav() {
   };
 
   return (
-    <div className="fixed top-[24px] left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2">
+    <div className="fixed left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 top-[max(24px,env(safe-area-inset-top))]">
       <button
         ref={logoRef}
         type="button"

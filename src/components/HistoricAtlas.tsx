@@ -64,10 +64,10 @@ export default function HistoricAtlas() {
   };
 
   return (
-    <div className="grid lg:grid-cols-[340px_1fr] gap-6">
-      <div>
+    <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-6">
+      <div className="min-w-0">
         <p className="text-xs tracking-[0.2em] uppercase text-white/50">Атлас Гошева</p>
-        <div role="tablist" aria-label="Історичні карти" className="mt-4 flex lg:flex-col flex-row overflow-x-auto gap-2">
+        <div role="tablist" aria-label="Історичні карти" className="mt-4 flex lg:flex-col flex-row overflow-x-auto gap-2 max-w-full">
           {MAPS.map((m, i) => {
             const active = m.year === selected;
             return (
@@ -102,7 +102,7 @@ export default function HistoricAtlas() {
         </p>
       </div>
 
-      <div id="historic-map" role="tabpanel" aria-labelledby={`tab-${selected}`} className="rounded-3xl overflow-hidden border border-white/15 bg-[#0d0f0e]">
+      <div id="historic-map" role="tabpanel" aria-labelledby={`tab-${selected}`} className="min-w-0 rounded-3xl overflow-hidden border border-white/15 bg-[#0d0f0e]">
         <button
           id="open-map"
           ref={openBtnRef}
