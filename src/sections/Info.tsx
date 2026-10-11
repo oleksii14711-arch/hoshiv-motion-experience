@@ -1,4 +1,4 @@
-import { LINKS } from '../data/content';
+import { LINKS, img2k, PANORAMA_SIZES } from '../data/content';
 
 const ITEMS = [
   { no: '01', tag: 'Самоврядування', title: 'Гошівський старостинський округ', text: 'Офіційна сторінка села', href: LINKS.starosta },
@@ -32,8 +32,8 @@ export function Community() {
           ))}
         </div>
         <figure className="mt-6 rounded-3xl overflow-hidden border border-white/15">
-          <img src="assets/hoshiv-panorama.jpg" alt="Ясна Гора над будинками Гошева" loading="lazy" className="w-full h-72 object-cover" />
-          <figcaption className="px-5 py-3 text-sm text-white/60">Ясна Гора над селом</figcaption>
+          <img src={img2k('hoshiv-panorama-1x1-2k', [480, 768, 1024, 1600]).src} srcSet={img2k('hoshiv-panorama-1x1-2k', [480, 768, 1024, 1600]).srcSet} sizes={PANORAMA_SIZES} alt="Ясна Гора над будинками Гошева (AI-візуалізація)" loading="lazy" className="w-full h-72 object-cover" />
+          <figcaption className="px-5 py-3 text-sm text-white/60">Ясна Гора над селом · AI-візуалізація</figcaption>
         </figure>
       </div>
     </section>
@@ -113,7 +113,7 @@ export function Footer() {
         </div>
         <details className="mt-6 text-xs text-white/50">
           <summary className="cursor-pointer underline">Автори світлин і джерела</summary>
-          <p className="mt-2">Панорама: Bogdan Kosar / Wikimedia Commons, CC BY-SA 4.0. Монастир: Dmytro Petishkin / Wikimedia Commons, CC BY 4.0. Жіночий монастир: Згромадження сестер Пресвятої Родини. Історичні карти — фрагменти, надані Михайлом.</p>
+          <p className="mt-2">Панорама: Bogdan Kosar / Wikimedia Commons, CC BY-SA 4.0. Монастир: Dmytro Petishkin / Wikimedia Commons, CC BY 4.0. Жіночий монастир: Згромадження сестер Пресвятої Родини. Фотографічні блоки сайту — AI-візуалізації на основі наданих фото, не документально точні. Історичні карти — фрагменти, надані Михайлом.</p>
         </details>
       </div>
     </footer>

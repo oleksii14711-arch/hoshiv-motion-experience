@@ -45,6 +45,17 @@ body {
   background: radial-gradient(ellipse 120% 90% at 50% 42%, transparent 55%, rgba(0, 0, 0, 0.42) 100%);
 }
 
+/* Позиціонування hero-кадру: монастир Ясної Гори лишається в кадрі */
+.hero-img {
+  object-position: 50% 38%;
+}
+
+@media (max-width: 768px) {
+  .hero-img {
+    object-position: 50% 50%;
+  }
+}
+
 .pill-word {
   display: inline-block;
   white-space: nowrap;

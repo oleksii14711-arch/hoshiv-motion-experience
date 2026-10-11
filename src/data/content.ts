@@ -86,3 +86,13 @@ export const MARQUEE_ITEMS = [
 
 export const HLS_DEMO_SRC =
   'https://stream.mux.com/43NlHXsaMrmyzWamMk87m01fNyxSTekAD669BBAPBNm00.m3u8';
+
+/** WebP-набір 2K-візуалізацій: src за нечтомовчуванням + srcSet. */
+export function img2k(base: string, widths: number[], dir = 'assets/img2k'): { src: string; srcSet: string } {
+  const srcSet = widths.map((w) => `${dir}/${base}-${w}.webp ${w}w`).join(', ');
+  const fallback = widths.includes(1024) ? 1024 : widths[widths.length - 1];
+  return { src: `${dir}/${base}-${fallback}.webp`, srcSet };
+}
+
+export const GALLERY_SIZES = '(max-width: 768px) calc(100vw - 32px), 560px';
+export const PANORAMA_SIZES = '(max-width: 768px) calc(100vw - 32px), 1136px';

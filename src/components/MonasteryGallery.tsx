@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 interface GalleryImage {
   src: string;
+  srcSet?: string;
+  sizes?: string;
   alt: string;
   width?: number;
   height?: number;
@@ -31,6 +33,8 @@ export default function MonasteryGallery({ images, label, caption }: MonasteryGa
       >
         <img
           src={current.src}
+          srcSet={current.srcSet}
+          sizes={current.sizes}
           alt={current.alt}
           loading="lazy"
           className="w-full h-[320px] md:h-[420px] object-cover"

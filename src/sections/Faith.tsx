@@ -1,5 +1,7 @@
 import MonasteryGallery from '../components/MonasteryGallery';
-import { LINKS } from '../data/content';
+import { LINKS, img2k, GALLERY_SIZES } from '../data/content';
+
+const GW = [480, 768, 1024, 1600];
 
 export default function Faith() {
   return (
@@ -21,12 +23,12 @@ export default function Faith() {
             <div className="mt-4">
               <MonasteryGallery
                 label="Змінити фото Василіянського монастиря"
-                caption="Ясна Гора · Василіянський монастир"
+                caption="Ясна Гора · Василіянський монастир · AI-візуалізація"
                 images={[
-                  { src: 'assets/monastery.jpg', alt: 'Брама з релігійною мозаїкою та храм василіянського монастиря в Гошеві' },
-                  { src: 'assets/monastery-courtyard.jpeg', alt: 'Храм і внутрішнє подвір’я Василіянського монастиря' },
-                  { src: 'assets/hoshiv-abbey-summer.jpeg', alt: 'Храм Гошівської обителі влітку' },
-                  { src: 'assets/hoshiv-abbey-winter.jpeg', alt: 'Храм Гошівської обителі взимку' },
+                  { ...img2k('monastery-1x1-2k', GW), sizes: GALLERY_SIZES, alt: 'Брама з релігійною мозаїкою та храм василіянського монастиря в Гошеві (AI-візуалізація)' },
+                  { ...img2k('monastery-courtyard-1x1-2k', GW), sizes: GALLERY_SIZES, alt: 'Храм і внутрішнє подвір’я Василіянського монастиря (AI-візуалізація)' },
+                  { ...img2k('hoshiv-abbey-summer-1x1-2k', GW), sizes: GALLERY_SIZES, alt: 'Храм Гошівської обителі влітку (AI-візуалізація)' },
+                  { ...img2k('hoshiv-abbey-winter-1x1-2k', GW), sizes: GALLERY_SIZES, alt: 'Храм Гошівської обителі взимку (AI-візуалізація)' },
                 ]}
               />
             </div>
@@ -45,9 +47,9 @@ export default function Faith() {
             <div className="mt-4">
               <MonasteryGallery
                 label="Змінити ракурс монастиря сестер"
-                caption="Монастир сестер Пресвятої Родини · Гошів"
+                caption="Монастир сестер Пресвятої Родини · Гошів · AI-візуалізація"
                 images={[
-                  { src: 'assets/sisters-front-2k.jpeg', alt: 'Монастир сестер Пресвятої Родини: храм і доріжка перед ним' },
+                  { ...img2k('sisters-front-1x1-2k', GW), sizes: GALLERY_SIZES, alt: 'Монастир сестер Пресвятої Родини: храм і доріжка перед ним (AI-візуалізація)' },
                 ]}
               />
             </div>
@@ -64,12 +66,12 @@ export default function Faith() {
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6">
           <figure className="min-w-0 rounded-3xl overflow-hidden border border-white/15">
-            <img src="assets/hoshiv-landscape-a.jpeg" alt="Краєвид Гошева та Ясної Гори" loading="lazy" className="w-full h-64 object-cover" />
-            <figcaption className="px-5 py-3 text-sm text-white/60">Краєвид · Гошів</figcaption>
+            <img src={img2k('hoshiv-landscape-a-1x1-2k', GW).src} srcSet={img2k('hoshiv-landscape-a-1x1-2k', GW).srcSet} sizes={GALLERY_SIZES} alt="Краєвид Гошева та Ясної Гори (AI-візуалізація)" loading="lazy" className="w-full h-64 object-cover" />
+            <figcaption className="px-5 py-3 text-sm text-white/60">Краєвид · Гошів · AI-візуалізація</figcaption>
           </figure>
           <figure className="min-w-0 rounded-3xl overflow-hidden border border-white/15">
-            <img src="assets/hoshiv-landscape-b.jpeg" alt="Панорама околиць Гошева" loading="lazy" className="w-full h-64 object-cover" />
-            <figcaption className="px-5 py-3 text-sm text-white/60">Околиці · Прикарпаття</figcaption>
+            <img src={img2k('hoshiv-landscape-b-1x1-2k', GW).src} srcSet={img2k('hoshiv-landscape-b-1x1-2k', GW).srcSet} sizes={GALLERY_SIZES} alt="Панорама околиць Гошева (AI-візуалізація)" loading="lazy" className="w-full h-64 object-cover" />
+            <figcaption className="px-5 py-3 text-sm text-white/60">Околиці · Прикарпаття · AI-візуалізація</figcaption>
           </figure>
         </div>
       </div>
