@@ -13,8 +13,8 @@ export default function Faith() {
           Духовна історія Гошева живе у двох обителях. Кожна має своє покликання, традиції та спільноту.
         </p>
 
-        <div className="mt-10 grid md:grid-cols-2 gap-6">
-          <article className="rounded-3xl border border-white/15 p-6 bg-gradient-to-b from-white/10 to-transparent">
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6">
+          <article className="min-w-0 rounded-3xl border border-white/15 p-6 bg-gradient-to-b from-white/10 to-transparent">
             <p className="text-xs tracking-[0.2em] uppercase text-white/50">На Ясній Горі</p>
             <h3 className="text-2xl mt-2">Монастир Преображення Господнього</h3>
             <p className="mt-2 text-white/70">Василіянська обитель, Гошівська ікона Божої Матері та Дім паломника.</p>
@@ -36,7 +36,7 @@ export default function Faith() {
             </div>
           </article>
 
-          <article id="sisters" className="rounded-3xl border border-white/15 p-6 bg-gradient-to-b from-white/10 to-transparent">
+          <article id="sisters" className="min-w-0 rounded-3xl border border-white/15 p-6 bg-gradient-to-b from-white/10 to-transparent">
             <p className="text-xs tracking-[0.2em] uppercase text-white/50">II / Пресвята Родина</p>
             <h3 className="text-2xl mt-2">Монастир <em className="font-serif">сестер</em></h3>
             <p className="mt-2 text-white/70">
@@ -62,12 +62,12 @@ export default function Faith() {
           </article>
         </div>
 
-        <div className="mt-8 grid md:grid-cols-2 gap-6">
-          <figure className="rounded-3xl overflow-hidden border border-white/15">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6">
+          <figure className="min-w-0 rounded-3xl overflow-hidden border border-white/15">
             <img src="assets/hoshiv-landscape-a.jpeg" alt="Краєвид Гошева та Ясної Гори" loading="lazy" className="w-full h-64 object-cover" />
             <figcaption className="px-5 py-3 text-sm text-white/60">Краєвид · Гошів</figcaption>
           </figure>
-          <figure className="rounded-3xl overflow-hidden border border-white/15">
+          <figure className="min-w-0 rounded-3xl overflow-hidden border border-white/15">
             <img src="assets/hoshiv-landscape-b.jpeg" alt="Панорама околиць Гошева" loading="lazy" className="w-full h-64 object-cover" />
             <figcaption className="px-5 py-3 text-sm text-white/60">Околиці · Прикарпаття</figcaption>
           </figure>

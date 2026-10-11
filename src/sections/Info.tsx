@@ -72,8 +72,8 @@ export function Location() {
       <div className="max-w-[1200px] mx-auto px-4 md:px-8">
         <p className="text-xs tracking-[0.25em] uppercase text-white/50">05 / На карті</p>
         <h2 id="location-title" className="font-serif text-4xl md:text-6xl mt-3">Зустрінемось <em>у Гошеві</em></h2>
-        <div className="mt-8 grid lg:grid-cols-[1fr_360px] gap-6">
-          <div className="rounded-3xl overflow-hidden border border-white/15 min-h-[380px] bg-black">
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
+          <div className="min-w-0 rounded-3xl overflow-hidden border border-white/15 min-h-[380px] bg-black">
             <iframe
               title="Карта Гошева з позначкою василіянського монастиря на Ясній Горі"
               loading="lazy"

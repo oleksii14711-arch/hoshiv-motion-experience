@@ -35,7 +35,7 @@ export default function AudioPlayer() {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-[90] flex items-center gap-3 rounded-full border border-white/15 bg-black/70 backdrop-blur px-4 py-2">
+    <div className="fixed z-[90] flex items-center gap-3 rounded-full border border-white/15 bg-black/70 backdrop-blur px-2 py-2 min-[420px]:px-4 bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))]">
       <button
         type="button"
         onClick={toggle}
@@ -43,10 +43,10 @@ export default function AudioPlayer() {
         aria-label={playing ? 'Призупинити пісню про Гошів' : 'Слухати пісню про Гошів'}
         className="flex items-center gap-2"
       >
-        <span className="flex w-8 h-8 items-center justify-center rounded-full bg-white text-black" aria-hidden="true">
+        <span className="flex w-10 h-10 min-[420px]:w-8 min-[420px]:h-8 items-center justify-center rounded-full bg-white text-black" aria-hidden="true">
           {playing ? <Pause size={16} /> : <Play size={16} />}
         </span>
-        <span className="text-left leading-tight">
+        <span className="hidden min-[420px]:block text-left leading-tight pr-1">
           <strong className="block text-sm">Пісня про Гошів</strong>
           <small className="block text-xs text-white/60">
             {failed ? 'Не вдалося відтворити · спробуйте ще раз' : playing ? 'Звучить · призупинити' : 'Слухати · 2:04'}
